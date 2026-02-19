@@ -797,13 +797,29 @@
     });
   }
 
-  function fetchStats(mode) {
-    // Stats arrive with the search response — show shimmer until first search
+function fetchStats(mode) {
     if (cachedStats[mode]) {
       renderStats(cachedStats[mode]);
     } else {
       showStatsLoading();
-      document.getElementById('stats-total-note').innerText = 'Search a seat number to load statistics.';
+      document.getElementById('stats-total-note').innerText = 'Loading statistics...';
+      
+      // Fetch stats immediately using a blank search
+      const url = APIS[mode];
+      if (url && !url.includes('YOUR_')) {
+        fetch(url + '?seat=')
+          .then(r => r.json())
+          .then(data => {
+            if (data.stats) {
+              cachedStats[mode] = data.stats;
+              renderStats(data.stats);
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            document.getElementById('stats-total-note').innerText = 'Failed to load stats.';
+          });
+      }
     }
   }
 
