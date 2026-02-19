@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AFM Student Results Portal</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --blue:    #2563eb;
+      --blue-lt: #3b82f6;
+      --cyan:    #0ea5e9;
+      --green:   #10b981;
+      --amber:   #f59e0b;
+      --red:     #ef4444;
+      --purple:  #8b5cf6;
+      --bg:      #060d1f;
+      --surface: rgba(255,255,255,0.04);
+      --glass:   rgba(255,255,255,0.07);
+      --border:  rgba(255,255,255,0.10);
+      --text:    #e2e8f0;
+      --muted:   #64748b;
+      --shadow:  0 24px 60px rgba(0,0,0,0.6);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 16px 60px;
+      overflow-x: hidden;
+      position: relative;
+
+      /* ══════════════════════════════════════════
+         🖼️  BACKGROUND PHOTO — paste your image
+         path or URL between the quotes below
+         Example: url('background.jpg')
+                  url('https://example.com/bg.jpg')
+      ══════════════════════════════════════════ */
+      background-image: url('background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-color: var(--bg); /* fallback if no image */
+    }
+
+    /* Dark overlay on top of the background photo */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(6, 13, 31, 0.82) 0%,
+        rgba(6, 13, 31, 0.70) 100%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Glow accent (sits above overlay) ── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 900px; height: 600px;
+      background: radial-gradient(ellipse at center, rgba(37,99,235,0.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      position: relative;
+      z-index: 1;
+      animation: fadeDown 0.7s ease both;
+    }
+    .header .icon {
+      font-size: 2.6rem;
+      background: linear-gradient(135deg, var(--blue-lt), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #f8fafc;
+    }
+    .header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 1px;
+    }
+
+    /* ── Year Menu ── */
+    .year-menu {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 1;
+      animation: fadeDown 0.7s 0.1s ease both;
+    }
+
+    .year-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .year-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      opacity: 0;
+      transition: opacity 0.25s;
+      border-radius: inherit;
+    }
+    .year-btn span, .year-btn i { position: relative; z-index: 1; }
+    .year-btn:hover { border-color: var(--blue-lt); color: #fff; transform: translateY(-2px); }
+    .year-btn:hover::after { opacity: 0.15; }
+    .year-btn.active {
+      border-color: var(--blue-lt);
+      color: #fff;
+      background: rgba(37,99,235,0.2);
+      box-shadow: 0 0 0 1px var(--blue-lt) inset, 0 8px 24px rgba(37,99,235,0.3);
+    }
+    .year-btn.active::after { opacity: 0.2; }
+    .badge-year {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      background: rgba(255,255,255,0.1);
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Panel wrapper ── */
+    .panel-wrapper {
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel {
+      display: none;
+      animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .panel.active { display: block; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+    }
+
+    .card-top {
+      padding: 32px 32px 0;
+    }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 20px; height: 2px;
+      background: var(--blue-lt);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .section-label i {
+      color: var(--blue-lt);
+      font-size: 0.75rem;
+    }
+
+    /* Seat input */
+    .input-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .input-wrap i {
+      position: absolute;
+      left: 18px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 1rem;
+    }
+    .seat-input {
+      width: 100%;
+      padding: 16px 18px 16px 46px;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      color: #f8fafc;
+      font-family: 'Space Mono', monospace;
+      font-size: 1.1rem;
+      text-align: left;
+      letter-spacing: 2px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .seat-input::placeholder { color: var(--muted); letter-spacing: 1px; }
+    .seat-input:focus {
+      border-color: var(--blue-lt);
+      background: rgba(37,99,235,0.08);
+    }
+
+    /* ── Sub-mode buttons (for 2nd year) ── */
+    .mode-btns {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 11px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .mode-btn:hover { border-color: var(--blue-lt); color: #fff; }
+    .mode-btn.active {
+      border-color: var(--purple);
+      color: #fff;
+      background: rgba(139,92,246,0.18);
+      box-shadow: 0 0 0 1px var(--purple) inset;
+    }
+
+    /* Search button */
+    .btn-search {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(90deg, var(--blue), var(--cyan));
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      letter-spacing: 0.3px;
+    }
+    .btn-search:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(37,99,235,0.4); }
+    .btn-search:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .card-body { padding: 24px 32px 32px; }
+
+    /* Loader */
+    .loader {
+      display: none;
+      width: 36px; height: 36px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: var(--blue-lt);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 24px auto 0;
+    }
+
+    /* Error */
+    .error-msg {
+      display: none;
+      margin-top: 20px;
+      padding: 14px 18px;
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 12px;
+      color: #fca5a5;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    /* Result area */
+    .result-area {
+      display: none;
+      margin-top: 24px;
+      animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    /* Grade circle */
+    .grade-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .grade-circle {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 800;
+      color: #fff;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+      margin-bottom: 10px;
+    }
+    .grade-label {
+      font-weight: 700; font-size: 1.1rem; color: #f8fafc;
+    }
+
+    .bg-Excellent { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 12px 30px rgba(16,185,129,0.4); }
+    .bg-VeryGood  { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 12px 30px rgba(59,130,246,0.4); }
+    .bg-Good      { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 12px 30px rgba(245,158,11,0.4); }
+    .bg-Fail      { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 12px 30px rgba(239,68,68,0.4); }
+    .bg-Default   { background: linear-gradient(135deg, #475569, #334155); }
+
+    /* Student info */
+    .student-info {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+    .student-name { font-size: 1.15rem; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
+    .student-seat { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+
+    /* Stats grid */
+    .stats-grid { display: flex; flex-direction: column; gap: 10px; }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .stat-label { color: var(--muted); font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+    .stat-label i { font-size: 0.8rem; }
+    .stat-val { font-weight: 700; font-size: 1rem; color: #f8fafc; font-family: 'Space Mono', monospace; }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 30px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-align: center;
+      z-index: 1;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    /* Animations */
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideUp  { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin     { to { transform: rotate(360deg); } }
+    @keyframes shake    { 0%,100%{transform:translateX(0)} 25%,75%{transform:translateX(-6px)} 50%{transform:translateX(6px)} }
+
+    @media (max-width: 480px) {
+      .year-menu { flex-direction: column; width: 100%; max-width: 500px; }
+      .year-btn { justify-content: center; }
+      .card-top, .card-body { padding-left: 20px; padding-right: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="icon"><i class="fas fa-university"></i></div>
+    <h1>AFM Results Portal</h1>
+    <p>FACULTY OF MEDICINE · STUDENT RESULTS</p>
+  </div>
+
+  <!-- Year Selection Menu -->
+  <div class="year-menu">
+    <button class="year-btn active" onclick="switchYear('y1')" id="tab-y1">
+      <i class="fas fa-seedling"></i>
+      <span>1st Year</span>
+      <span class="badge-year">2030</span>
+    </button>
+    <button class="year-btn" onclick="switchYear('y2')" id="tab-y2">
+      <i class="fas fa-book-open"></i>
+      <span>2nd Year</span>
+      <span class="badge-year">2029</span>
+    </button>
+  </div>
+
+  <!-- Panels -->
+  <div class="panel-wrapper">
+
+    <!-- ══════════════════════════════════════
+         1ST YEAR PANEL
+    ══════════════════════════════════════ -->
+    <div class="panel active" id="panel-y1">
+      <div class="card">
+        <div class="card-top">
+          <div class="section-label"><i class="fas fa-seedling"></i> 1st Year · Class of 2030 · Rank</div>
+          <div class="input-wrap">
+            <i class="fas fa-hashtag"></i>
+            <input class="seat-input" id="seat-y1" type="text" placeholder="Enter Seat Number" />
+          </div>
+          <div class="card-body" style="padding: 0 0 24px;">
+            <button class="btn-search" onclick="search('y1')">
+              <i class="fas fa-search" style="margin-right:8px;"></i>Search Results
+            </button>
+            <div class="loader" id="loader-y1"></div>
+            <div class="error-msg" id="error-y1"><i class="fas fa-triangle-exclamation" style="margin-right:6px;"></i>Seat number not found. Please try again.</div>
+            <div class="result-area" id="result-y1">
+              <div class="divider"></div>
+              <div class="grade-wrap">
+                <div class="grade-circle bg-Default" id="circle-y1">—</div>
+                <div class="grade-label" id="eval-y1">—</div>
+              </div>
+              <div class="student-info">
+                <div class="student-name" id="name-y1">—</div>
+                <div class="student-seat"><i class="fas fa-fingerprint" style="margin-right:6px;"></i><span id="seatdisp-y1">—</span></div>
+              </div>
+              <div class="stats-grid">
+                <div class="stat-row">
+                  <span class="stat-label"><i class="fas fa-trophy"></i> Class Rank</span>
+                  <span class="stat-val" id="rank-y1">#—</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label"><i class="fas fa-sigma"></i> Total Score</span>
+                  <span class="stat-val" id="total-y1">—</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label"><i class="fas fa-percent"></i> Percentage</span>
+                  <span class="stat-val" id="percent-y1">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         2ND YEAR PANEL
+    ══════════════════════════════════════ -->
+    <div class="panel" id="panel-y2">
+      <div class="card">
+        <div class="card-top">
+          <div class="section-label"><i class="fas fa-book-open"></i> 2nd Year · Class of 2029</div>
+
+          <!-- Mode selector -->
+          <div class="mode-btns">
+            <button class="mode-btn active" id="mode-accum" onclick="switchMode('accum')">
+              <i class="fas fa-layer-group"></i> Accumulative Rank
+            </button>
+            <button class="mode-btn" id="mode-2nd" onclick="switchMode('2nd')">
+              <i class="fas fa-calendar-check"></i> 2nd Year Rank
+            </button>
+          </div>
+
+          <div class="input-wrap">
+            <i class="fas fa-hashtag"></i>
+            <input class="seat-input" id="seat-y2" type="text" placeholder="Enter Seat Number" />
+          </div>
+
+          <div class="card-body" style="padding: 0 0 24px;">
+            <button class="btn-search" onclick="search('y2')">
+              <i class="fas fa-search" style="margin-right:8px;"></i>Search Results
+            </button>
+            <div class="loader" id="loader-y2"></div>
+            <div class="error-msg" id="error-y2"><i class="fas fa-triangle-exclamation" style="margin-right:6px;"></i>Seat number not found. Please try again.</div>
+            <div class="result-area" id="result-y2">
+              <div class="divider"></div>
+              <div class="grade-wrap">
+                <div class="grade-circle bg-Default" id="circle-y2">—</div>
+                <div class="grade-label" id="eval-y2">—</div>
+              </div>
+              <div class="student-info">
+                <div class="student-name" id="name-y2">—</div>
+                <div class="student-seat"><i class="fas fa-fingerprint" style="margin-right:6px;"></i><span id="seatdisp-y2">—</span></div>
+              </div>
+              <div class="stats-grid">
+                <div class="stat-row">
+                  <span class="stat-label"><i class="fas fa-trophy"></i> Class Rank</span>
+                  <span class="stat-val" id="rank-y2">#—</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label"><i class="fas fa-sigma"></i> Total Score</span>
+                  <span class="stat-val" id="total-y2">—</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label"><i class="fas fa-percent"></i> Percentage</span>
+                  <span class="stat-val" id="percent-y2">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel-wrapper -->
+
+  <footer>&copy; Made by Omar Aboolo &nbsp;·&nbsp; Class of 2030</footer>
+
+  <script>
+    // ============================================================
+    //  ⚠️  REPLACE THESE URLs WITH YOUR GOOGLE APPS SCRIPT URLs
+    // ============================================================
+    const APIS = {
+      y1:    "https://script.google.com/macros/s/AKfycbydAUM1mn7OKrydMQK8c95mbSSt_IgKVKZeeI79dgkdGmLLbTraZ5gA2F-WwXaoXJSZ/exec",  // 1st Year Rank
+      accum: "YOUR_2ND_YEAR_ACCUMULATIVE_API_URL_HERE",   // 2nd Year – Accumulative Rank
+      y2nd:  "YOUR_2ND_YEAR_ONLY_API_URL_HERE",           // 2nd Year – 2nd Year Rank only
+    };
+
+    // Active 2nd-year mode
+    let activeMode = 'accum';
+
+    /* ── Year tab switching ── */
+    function switchYear(year) {
+      document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + year).classList.add('active');
+      document.getElementById('panel-' + year).classList.add('active');
+    }
+
+    /* ── 2nd Year sub-mode switching ── */
+    function switchMode(mode) {
+      activeMode = mode;
+      document.getElementById('mode-accum').classList.toggle('active', mode === 'accum');
+      document.getElementById('mode-2nd').classList.toggle('active',   mode === '2nd');
+      // Reset result when mode changes
+      resetResult('y2');
+    }
+
+    /* ── Reset result area ── */
+    function resetResult(pid) {
+      document.getElementById('result-' + pid).style.display = 'none';
+      document.getElementById('error-'  + pid).style.display = 'none';
+    }
+
+    /* ── Grade styling logic ── */
+    function gradeStyle(evalText) {
+      const e = (evalText || "").toLowerCase();
+      if (e.includes("excellent")  || e.includes("امتياز"))  return { cls: "bg-Excellent", short: "Ex" };
+      if (e.includes("very good")  || e.includes("جيد جدا")) return { cls: "bg-VeryGood",  short: "Vg" };
+      if (e.includes("good")       || e.includes("جيد"))     return { cls: "bg-Good",      short: "Gd" };
+      if (e.includes("fail")       || e.includes("f")  || e.includes("راسب")) return { cls: "bg-Fail", short: "F" };
+      return { cls: "bg-Default", short: evalText ? evalText.charAt(0).toUpperCase() : "—" };
+    }
+
+    /* ── Populate result UI ── */
+    function populateResult(pid, data) {
+      document.getElementById('name-y'     + pid.slice(-1)).innerText = data.name       || "—";
+      document.getElementById('seatdisp-y' + pid.slice(-1)).innerText = "Seat: " + (data.seat || "—");
+      document.getElementById('rank-y'     + pid.slice(-1)).innerText = "#" + (data.rank    || "—");
+      document.getElementById('total-y'    + pid.slice(-1)).innerText = data.total      || "—";
+      document.getElementById('percent-y'  + pid.slice(-1)).innerText = data.percent    || "—";
+      document.getElementById('eval-y'     + pid.slice(-1)).innerText = data.evaluation || "—";
+
+      const g = gradeStyle(data.evaluation);
+      const circle = document.getElementById('circle-y' + pid.slice(-1));
+      circle.className = 'grade-circle ' + g.cls;
+      circle.innerText = g.short;
+
+      document.getElementById('result-' + pid).style.display = 'block';
+    }
+
+    /* ── Main search function ── */
+    function search(panelId) {
+      const inputId = 'seat-' + panelId;
+      const seat = (document.getElementById(inputId).value || "").trim();
+      if (!seat) { document.getElementById(inputId).focus(); return; }
+
+      // Pick API URL
+      let url;
+      if (panelId === 'y1') {
+        url = APIS.y1;
+      } else {
+        url = (activeMode === 'accum') ? APIS.accum : APIS.y2nd;
+      }
+
+      // Warn if placeholder URL
+      if (url.includes("YOUR_")) {
+        alert("⚠️ Please replace the placeholder API URL in the APIS object at the top of the <script> tag for this section.");
+        return;
+      }
+
+      // UI: loading state
+      const btn = document.querySelector('#panel-' + panelId + ' .btn-search');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="margin-right:8px;"></i>Searching…';
+      document.getElementById('loader-' + panelId).style.display = 'block';
+      resetResult(panelId);
+
+      fetch(url + "?seat=" + encodeURIComponent(seat))
+        .then(r => r.json())
+        .then(data => {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-search" style="margin-right:8px;"></i>Search Results';
+          document.getElementById('loader-' + panelId).style.display = 'none';
+
+          if (data.found) {
+            populateResult(panelId, data);
+          } else {
+            document.getElementById('error-' + panelId).style.display = 'block';
+            document.querySelector('#panel-' + panelId + ' .card').style.animation = 'none';
+            requestAnimationFrame(() => {
+              document.querySelector('#panel-' + panelId + ' .card').style.animation = 'shake 0.5s';
+            });
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-search" style="margin-right:8px;"></i>Search Results';
+          document.getElementById('loader-' + panelId).style.display = 'none';
+          alert("Connection failed. Please check the API URL.");
+        });
+    }
+
+    /* ── Enter key support ── */
+    ['seat-y1', 'seat-y2'].forEach(id => {
+      document.getElementById(id).addEventListener('keypress', e => {
+        if (e.key === 'Enter') search(id === 'seat-y1' ? 'y1' : 'y2');
+      });
+    });
+  </script>
+
+</body>
+</html>
