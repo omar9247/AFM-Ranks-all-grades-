@@ -804,7 +804,7 @@ function fetchStats(mode) {
       showStatsLoading();
       document.getElementById('stats-total-note').innerText = 'Loading statistics...';
       
-      // Fetch stats immediately using a blank search
+      // Fetch the hardcopied stats immediately using a blank search
       const url = APIS[mode];
       if (url && !url.includes('YOUR_')) {
         fetch(url + '?seat=')
@@ -813,12 +813,16 @@ function fetchStats(mode) {
             if (data.stats) {
               cachedStats[mode] = data.stats;
               renderStats(data.stats);
+            } else {
+              document.getElementById('stats-total-note').innerText = 'No statistics found.';
             }
           })
           .catch(err => {
             console.error(err);
             document.getElementById('stats-total-note').innerText = 'Failed to load stats.';
           });
+      } else {
+         document.getElementById('stats-total-note').innerText = 'API URL not configured.';
       }
     }
   }
