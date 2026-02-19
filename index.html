@@ -316,6 +316,69 @@
     @media(max-width:480px) {
       .card-top, .card-body-inner { padding-left:18px; padding-right:18px; }
     }
+
+    /* ── STATS PANEL ── */
+    .stats-panel {
+      width:100%; max-width:500px;
+      margin-top:16px;
+      animation:slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .stats-card {
+      background:var(--glass); border:1px solid var(--border);
+      border-radius:20px; padding:22px;
+      backdrop-filter:blur(20px); box-shadow:var(--shadow);
+    }
+    .stats-section-label {
+      font-family:'Space Mono',monospace; font-size:0.65rem;
+      letter-spacing:2px; color:var(--muted); text-transform:uppercase;
+      margin-bottom:14px; display:flex; align-items:center; gap:8px;
+    }
+    .stats-section-label::before {
+      content:''; display:block; width:14px; height:2px;
+      background:var(--cyan); border-radius:2px;
+    }
+    .stats-section-label i { color:var(--cyan); font-size:0.68rem; }
+
+    /* Key stat boxes */
+    .key-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:22px; }
+    .key-stat-box {
+      background:rgba(255,255,255,0.04); border:1px solid var(--border);
+      border-radius:13px; padding:14px 10px; text-align:center;
+      transition:border-color 0.2s;
+    }
+    .key-stat-val {
+      font-family:'Space Mono',monospace; font-size:1rem; font-weight:700;
+      color:#f8fafc; margin-bottom:4px; line-height:1.2;
+    }
+    .key-stat-lbl { font-size:0.7rem; color:var(--muted); line-height:1.3; }
+
+    /* Loading shimmer */
+    .shimmer {
+      background:linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 75%);
+      background-size:200% 100%;
+      animation:shimmer 1.4s infinite;
+      border-radius:6px;
+      color:transparent !important;
+      pointer-events:none;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* Distribution chart */
+    .dist-chart { display:flex; flex-direction:column; gap:9px; }
+    .dist-row { display:flex; align-items:center; gap:10px; }
+    .dist-label { font-size:0.78rem; font-weight:600; color:var(--text); width:76px; flex-shrink:0; text-align:right; }
+    .dist-bar-wrap { flex:1; background:rgba(255,255,255,0.06); border-radius:50px; height:10px; overflow:hidden; }
+    .dist-bar { height:100%; border-radius:50px; transition:width 0.9s cubic-bezier(0.16,1,0.3,1); width:0%; }
+    .dist-count { font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--muted); width:32px; text-align:right; flex-shrink:0; }
+
+    .bar-excellent { background:linear-gradient(90deg,#10b981,#34d399); }
+    .bar-verygood  { background:linear-gradient(90deg,#3b82f6,#60a5fa); }
+    .bar-good      { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .bar-poor      { background:linear-gradient(90deg,#f97316,#fb923c); }
+    .bar-fail      { background:linear-gradient(90deg,#ef4444,#f87171); }
+
+    .stats-note { font-size:0.72rem; color:var(--muted); text-align:center; margin-top:14px; font-family:'Space Mono',monospace; }
+    .stats-error { font-size:0.8rem; color:#fca5a5; text-align:center; padding:16px 0; }
   </style>
 </head>
 <body>
@@ -475,6 +538,56 @@
         </div>
       </div>
 
+      <!-- Stats panel -->
+      <div class="stats-panel" id="stats-panel">
+        <div class="stats-card">
+          <div class="stats-section-label"><i class="fas fa-bolt"></i> Key Numbers</div>
+          <div class="key-stats">
+            <div class="key-stat-box">
+              <div class="key-stat-val" id="stat-max">—</div>
+              <div class="key-stat-lbl">Highest<br>Score</div>
+            </div>
+            <div class="key-stat-box">
+              <div class="key-stat-val" id="stat-top100">—</div>
+              <div class="key-stat-lbl">Top 100<br>Cutoff</div>
+            </div>
+            <div class="key-stat-box">
+              <div class="key-stat-val" id="stat-top200">—</div>
+              <div class="key-stat-lbl">Top 200<br>Cutoff</div>
+            </div>
+          </div>
+          <div class="stats-section-label"><i class="fas fa-chart-bar"></i> Grade Distribution</div>
+          <div class="dist-chart">
+            <div class="dist-row">
+              <span class="dist-label">Excellent</span>
+              <div class="dist-bar-wrap"><div class="dist-bar bar-excellent" id="bar-excellent"></div></div>
+              <span class="dist-count" id="cnt-excellent">0</span>
+            </div>
+            <div class="dist-row">
+              <span class="dist-label">Very Good</span>
+              <div class="dist-bar-wrap"><div class="dist-bar bar-verygood" id="bar-verygood"></div></div>
+              <span class="dist-count" id="cnt-verygood">0</span>
+            </div>
+            <div class="dist-row">
+              <span class="dist-label">Good</span>
+              <div class="dist-bar-wrap"><div class="dist-bar bar-good" id="bar-good"></div></div>
+              <span class="dist-count" id="cnt-good">0</span>
+            </div>
+            <div class="dist-row">
+              <span class="dist-label">Poor</span>
+              <div class="dist-bar-wrap"><div class="dist-bar bar-poor" id="bar-poor"></div></div>
+              <span class="dist-count" id="cnt-poor">0</span>
+            </div>
+            <div class="dist-row">
+              <span class="dist-label">Fail</span>
+              <div class="dist-bar-wrap"><div class="dist-bar bar-fail" id="bar-fail"></div></div>
+              <span class="dist-count" id="cnt-fail">0</span>
+            </div>
+          </div>
+          <div class="stats-note" id="stats-total-note">Search first to load statistics</div>
+        </div>
+      </div>
+
       <footer class="site-footer">&copy; Made by Omar Aboolo &middot; Class of 2030</footer>
     </div>
   </div>
@@ -490,8 +603,18 @@
     y1:    "https://script.google.com/macros/s/AKfycbxxnn4t8uCrpPy6zgHQ693krg_O1s0CuPcX0dI5o2gyng1jUJm3ehLJ9xgUBxPMgFEv/exec",
     accum: "https://script.google.com/macros/s/AKfycbwnVd2j78AuWfQnMrSw3FFU9VPJU-czByF25mP5OnVZ-BFKQW2KEIZm5uXmuZheTijC/exec",
     y2nd:  "https://script.google.com/macros/s/AKfycbzJ1Mr6oJ7ZczAjb0mIkoZHIa4F1r1XL5Pgb2ncNwRPYs5UnoEH8KkR2jCsFXKWwIo8/exec",
-    /* ADD NEW APIS HERE:
-    key: "https://script.google.com/..." */
+  };
+
+  /* ════════════════════════════════════
+     STATS API URLS  (separate endpoints)
+     Replace each placeholder with your
+     deployed Google Apps Script URL.
+  ════════════════════════════════════ */
+  const STATS_APIS = {
+    y1:    "YOUR_1ST_YEAR_STATS_API_URL_HERE",
+    accum: "YOUR_ACCUM_STATS_API_URL_HERE",
+    y2nd:  "YOUR_2ND_YEAR_STATS_API_URL_HERE",
+    /* ADD NEW STATS APIS HERE */
   };
 
   /* ════════════════════════════════════
@@ -527,6 +650,8 @@
 
     resetResult();
     document.getElementById('seat-input').value = '';
+    // Fetch stats for this section (cached after first load)
+    fetchStats(mode);
 
     // Scroll results page back to top before showing
     document.getElementById('page-results').scrollTop = 0;
@@ -628,13 +753,86 @@
   }
 
 
+
+  /* ── Stats panel — auto-loads on section open via separate API ── */
+  let cachedStats = {};   // keyed by mode so switching back is instant
+
+  function showStatsLoading() {
+    // Shimmer on key stat values
+    ['stat-max','stat-top100','stat-top200'].forEach(id => {
+      const el = document.getElementById(id);
+      el.innerText = '···';
+      el.classList.add('shimmer');
+    });
+    // Reset bars
+    ['excellent','verygood','good','poor','fail'].forEach(k => {
+      document.getElementById('bar-' + k).style.width = '0%';
+      document.getElementById('cnt-' + k).innerText = '—';
+    });
+    document.getElementById('stats-total-note').innerText = 'Loading statistics...';
+  }
+
+  function renderStats(s) {
+    ['stat-max','stat-top100','stat-top200'].forEach(id => {
+      document.getElementById(id).classList.remove('shimmer');
+    });
+    document.getElementById('stat-max').innerText    = s.maxGrade  || '—';
+    document.getElementById('stat-top100').innerText = s.top100cut || '—';
+    document.getElementById('stat-top200').innerText = s.top200cut || '—';
+    document.getElementById('stats-total-note').innerText = s.total + ' students total';
+
+    const d = s.dist;
+    const maxVal = Math.max(d.Excellent, d.VeryGood, d.Good, d.Poor, d.Fail, 1);
+    const bars = [
+      { id:'excellent', val:d.Excellent },
+      { id:'verygood',  val:d.VeryGood  },
+      { id:'good',      val:d.Good      },
+      { id:'poor',      val:d.Poor      },
+      { id:'fail',      val:d.Fail      },
+    ];
+    bars.forEach(b => {
+      document.getElementById('cnt-' + b.id).innerText = b.val;
+      setTimeout(() => {
+        document.getElementById('bar-' + b.id).style.width = ((b.val / maxVal) * 100) + '%';
+      }, 60);
+    });
+  }
+
+  function fetchStats(mode) {
+    // Return instantly from cache if already loaded
+    if (cachedStats[mode]) { renderStats(cachedStats[mode]); return; }
+
+    const url = STATS_APIS[mode];
+    if (!url || url.includes('YOUR_')) {
+      document.getElementById('stats-total-note').innerText = 'Stats API not configured yet.';
+      ['stat-max','stat-top100','stat-top200'].forEach(id => {
+        document.getElementById(id).classList.remove('shimmer');
+        document.getElementById(id).innerText = '—';
+      });
+      return;
+    }
+
+    showStatsLoading();
+
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        cachedStats[mode] = data;
+        renderStats(data);
+      })
+      .catch(() => {
+        document.getElementById('stats-total-note').innerText = 'Could not load statistics.';
+        ['stat-max','stat-top100','stat-top200'].forEach(id => {
+          document.getElementById(id).classList.remove('shimmer');
+          document.getElementById(id).innerText = '—';
+        });
+      });
+  }
+
   document.getElementById('seat-input').addEventListener('keypress', e => {
     if (e.key === 'Enter') doSearch();
   });
 </script>
-
-  <script data-goatcounter="https://omar9247.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
 
 </body>
 </html>
