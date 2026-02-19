@@ -605,17 +605,7 @@
     y2nd:  "https://script.google.com/macros/s/AKfycbzJ1Mr6oJ7ZczAjb0mIkoZHIa4F1r1XL5Pgb2ncNwRPYs5UnoEH8KkR2jCsFXKWwIo8/exec",
   };
 
-  /* ════════════════════════════════════
-     STATS API URLS  (separate endpoints)
-     Replace each placeholder with your
-     deployed Google Apps Script URL.
-  ════════════════════════════════════ */
-  const STATS_APIS = {
-    y1:    "https://script.google.com/macros/s/AKfycbxxnn4t8uCrpPy6zgHQ693krg_O1s0CuPcX0dI5o2gyng1jUJm3ehLJ9xgUBxPMgFEv/exec",
-    accum: "https://script.google.com/macros/s/AKfycbwnVd2j78AuWfQnMrSw3FFU9VPJU-czByF25mP5OnVZ-BFKQW2KEIZm5uXmuZheTijC/exec",
-    y2nd:  "https://script.google.com/macros/s/AKfycbzJ1Mr6oJ7ZczAjb0mIkoZHIa4F1r1XL5Pgb2ncNwRPYs5UnoEH8KkR2jCsFXKWwIo8/exec",
-    /* ADD NEW STATS APIS HERE */
-  };
+  /* Stats come from the main search API — no separate stats URLs needed */
 
   /* ════════════════════════════════════
      PAGE METADATA
@@ -718,6 +708,10 @@
           populateResult(data);
         } else {
           document.getElementById('error-msg').style.display = 'block';
+          if (data.stats) {
+            cachedStats[currentMode] = data.stats;
+            renderStats(data.stats);
+          }
           const card = document.querySelector('.results-card');
           card.style.animation = 'none';
           requestAnimationFrame(() => { card.style.animation = 'shake 0.5s'; });
@@ -750,6 +744,11 @@
     circle.innerText = grade.label;
 
     document.getElementById('result-area').style.display = 'block';
+    // Cache and render stats from this response
+    if (data.stats) {
+      cachedStats[currentMode] = data.stats;
+      renderStats(data.stats);
+    }
   }
 
 
@@ -799,34 +798,13 @@
   }
 
   function fetchStats(mode) {
-    // Return instantly from cache if already loaded
-    if (cachedStats[mode]) { renderStats(cachedStats[mode]); return; }
-
-    const url = STATS_APIS[mode];
-    if (!url || url.includes('YOUR_')) {
-      document.getElementById('stats-total-note').innerText = 'Stats API not configured yet.';
-      ['stat-max','stat-top100','stat-top200'].forEach(id => {
-        document.getElementById(id).classList.remove('shimmer');
-        document.getElementById(id).innerText = '—';
-      });
-      return;
+    // Stats arrive with the search response — show shimmer until first search
+    if (cachedStats[mode]) {
+      renderStats(cachedStats[mode]);
+    } else {
+      showStatsLoading();
+      document.getElementById('stats-total-note').innerText = 'Search a seat number to load statistics.';
     }
-
-    showStatsLoading();
-
-    fetch(url)
-      .then(r => r.json())
-      .then(data => {
-        cachedStats[mode] = data;
-        renderStats(data);
-      })
-      .catch(() => {
-        document.getElementById('stats-total-note').innerText = 'Could not load statistics.';
-        ['stat-max','stat-top100','stat-top200'].forEach(id => {
-          document.getElementById(id).classList.remove('shimmer');
-          document.getElementById(id).innerText = '—';
-        });
-      });
   }
 
   document.getElementById('seat-input').addEventListener('keypress', e => {
