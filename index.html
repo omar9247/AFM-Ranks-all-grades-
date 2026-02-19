@@ -78,7 +78,7 @@
       display:flex;
       flex-direction:column;
       align-items:center;
-      padding:60px 20px 80px;
+      padding:40px 20px 80px;
       gap:32px;
       position:relative;
       z-index:1;
@@ -86,18 +86,12 @@
 
     /* ── PROFILE ── */
     .profile { text-align:center; animation:fadeDown 0.7s ease both; }
-    .avatar {
-      width:104px; height:104px; border-radius:50%;
-      background:linear-gradient(135deg,var(--blue),var(--cyan));
-      display:flex; align-items:center; justify-content:center;
-      font-size:2.8rem; color:#fff;
-      margin:0 auto 20px;
-      box-shadow:0 0 0 5px rgba(59,130,246,0.22), 0 18px 44px rgba(0,0,0,0.55);
-    }
-    .profile-name { font-size:2.1rem; font-weight:900; letter-spacing:-0.6px; color:#f8fafc; margin-bottom:6px; }
-    .profile-title {
-      font-family:'Space Mono',monospace; font-size:0.72rem;
-      letter-spacing:2.2px; color:var(--muted); text-transform:uppercase; margin-bottom:26px;
+
+    .portal-title {
+      font-size:2rem; font-weight:900; letter-spacing:-0.5px;
+      color:#f8fafc; line-height:1.25; margin-bottom:26px; text-align:center;
+      background:linear-gradient(135deg, #f8fafc 40%, var(--cyan));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
     }
     .contact-row { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
     .contact-chip {
@@ -320,7 +314,6 @@
     @keyframes shake    { 0%,100%{transform:translateX(0)} 25%,75%{transform:translateX(-6px)} 50%{transform:translateX(6px)} }
 
     @media(max-width:480px) {
-      .profile-name { font-size:1.75rem; }
       .card-top, .card-body-inner { padding-left:18px; padding-right:18px; }
     }
   </style>
@@ -337,13 +330,12 @@
 
       <!-- Profile -->
       <div class="profile">
-        <div class="avatar"><i class="fas fa-user-graduate"></i></div>
-        <div class="profile-name">Alexandria Faculty of Medicine Ranks Portal</div
+        <div class="portal-title">Alexandria Faculty of Medicine<br>Ranks Portal</div>
         <div class="contact-row">
           <a class="contact-chip" href="https://t.me/OmarAboolo" target="_blank">
             <i class="fab fa-telegram"></i> Telegram
           </a>
-          <a class="contact-chip" href="mailto:Omaraboolo924copy@gmail.com">
+          <a class="contact-chip" href="/cdn-cgi/l/email-protection#b9f6d4d8cbd8dbd6d6d5d6808b8ddad6c9c0f9ded4d8d0d597dad6d4">
             <i class="fas fa-envelope"></i> Email
           </a>
         </div>
@@ -490,7 +482,7 @@
 </div><!-- /app -->
 
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   /* ════════════════════════════════════
      API URLS
   ════════════════════════════════════ */
@@ -635,7 +627,7 @@
     document.getElementById('result-area').style.display = 'block';
   }
 
-  /* ── Enter key ── */
+
   document.getElementById('seat-input').addEventListener('keypress', e => {
     if (e.key === 'Enter') doSearch();
   });
