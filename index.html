@@ -341,18 +341,24 @@
       border-radius: 50%;
       display: flex;
       align-items: center; justify-content: center;
-      font-size: 1.8rem; font-weight: 800;
+      font-size: 1rem; font-weight: 800;
       color: #fff;
       box-shadow: 0 12px 36px rgba(0,0,0,0.4);
       margin-bottom: 10px;
+      text-align: center;
+      line-height: 1.2;
+      padding: 8px;
+      direction: rtl;
     }
     .grade-label {
       font-weight: 700; font-size: 1.1rem; color: #f8fafc;
     }
 
+    /* ── Grade colours ── */
     .bg-Excellent { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 12px 30px rgba(16,185,129,0.4); }
     .bg-VeryGood  { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 12px 30px rgba(59,130,246,0.4); }
     .bg-Good      { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 12px 30px rgba(245,158,11,0.4); }
+    .bg-Pass      { background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 12px 30px rgba(6,182,212,0.4); }
     .bg-Fail      { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 12px 30px rgba(239,68,68,0.4); }
     .bg-Default   { background: linear-gradient(135deg, #475569, #334155); }
 
@@ -439,9 +445,7 @@
   <!-- Panels -->
   <div class="panel-wrapper">
 
-    <!-- ══════════════════════════════════════
-         1ST YEAR PANEL
-    ══════════════════════════════════════ -->
+    <!-- 1ST YEAR PANEL -->
     <div class="panel active" id="panel-y1">
       <div class="card">
         <div class="card-top">
@@ -486,9 +490,7 @@
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════
-         2ND YEAR PANEL
-    ══════════════════════════════════════ -->
+    <!-- 2ND YEAR PANEL -->
     <div class="panel" id="panel-y2">
       <div class="card">
         <div class="card-top">
@@ -547,7 +549,7 @@
 
   </div><!-- /panel-wrapper -->
 
-  <footer>&copy; Made by Omar Aboolo &nbsp;·&nbsp; Class of 2030</footer>
+  <footer>&copy; Made by Omar Aboolo &nbsp;&middot;&nbsp; Class of 2030</footer>
 
   <script>
     // ============================================================
@@ -556,7 +558,7 @@
     const APIS = {
       y1:    "https://script.google.com/macros/s/AKfycbxxnn4t8uCrpPy6zgHQ693krg_O1s0CuPcX0dI5o2gyng1jUJm3ehLJ9xgUBxPMgFEv/exec",  // 1st Year Rank
       accum: "https://script.google.com/macros/s/AKfycbwnVd2j78AuWfQnMrSw3FFU9VPJU-czByF25mP5OnVZ-BFKQW2KEIZm5uXmuZheTijC/exec",   // 2nd Year – Accumulative Rank
-      y2nd:  "https://script.google.com/macros/s/AKfycbzJ1Mr6oJ7ZczAjb0mIkoZHIa4F1r1XL5Pgb2ncNwRPYs5UnoEH8KkR2jCsFXKWwIo8/exec",           // 2nd Year – 2nd Year Rank only
+      y2nd:  "https://script.google.com/macros/s/AKfycbzJ1Mr6oJ7ZczAjb0mIkoZHIa4F1r1XL5Pgb2ncNwRPYs5UnoEH8KkR2jCsFXKWwIo8/exec",   // 2nd Year – 2nd Year Rank only
     };
 
     // Active 2nd-year mode
@@ -575,7 +577,6 @@
       activeMode = mode;
       document.getElementById('mode-accum').classList.toggle('active', mode === 'accum');
       document.getElementById('mode-2nd').classList.toggle('active',   mode === '2nd');
-      // Reset result when mode changes
       resetResult('y2');
     }
 
@@ -587,12 +588,17 @@
 
     /* ── Grade styling logic ── */
     function gradeStyle(evalText) {
-      const e = (evalText || "").toLowerCase();
-      if (e.includes("excellent")  || e.includes("امتياز"))  return { cls: "bg-Excellent", short: "Ex" };
-      if (e.includes("very good")  || e.includes("جيد جدا")) return { cls: "bg-VeryGood",  short: "Vg" };
-      if (e.includes("good")       || e.includes("جيد"))     return { cls: "bg-Good",      short: "Gd" };
-      if (e.includes("fail")       || e.includes("f")  || e.includes("راسب")) return { cls: "bg-Fail", short: "F" };
-      return { cls: "bg-Default", short: evalText ? evalText.charAt(0).toUpperCase() : "—" };
+      const e = (evalText || "").trim();
+      const el = e.toLowerCase();
+
+      // Arabic grades — most specific first to avoid partial matches
+      if (e === "امتياز"  || el.includes("excellent"))                        return { cls: "bg-Excellent", short: "امتياز" };
+      if (e === "جيد جدا" || e === "جيد جداً" || el.includes("very good"))   return { cls: "bg-VeryGood",  short: "جيد جدا" };
+      if (e === "مقبول"   || el.includes("pass"))                             return { cls: "bg-Pass",      short: "مقبول" };
+      if (e === "جيد"     || el.includes("good"))                             return { cls: "bg-Good",      short: "جيد" };
+      if (e.includes("راسب") || e.includes("غ") || el.includes("fail"))      return { cls: "bg-Fail",      short: "راسب" };
+
+      return { cls: "bg-Default", short: e.charAt(0) || "—" };
     }
 
     /* ── Populate result UI ── */
@@ -628,7 +634,7 @@
 
       // Warn if placeholder URL
       if (url.includes("YOUR_")) {
-        alert("⚠️ Please replace the placeholder API URL in the APIS object at the top of the <script> tag for this section.");
+        alert("⚠️ Please replace the placeholder API URL in the APIS object at the top of the script tag for this section.");
         return;
       }
 
