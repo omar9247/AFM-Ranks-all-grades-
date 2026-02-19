@@ -8,258 +8,506 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --blue:#2563eb;--blue-lt:#3b82f6;--cyan:#0ea5e9;--green:#10b981;
-      --amber:#f59e0b;--orange:#f97316;--red:#ef4444;--purple:#8b5cf6;
-      --bg:#060d1f;--surface:rgba(255,255,255,0.04);--glass:rgba(255,255,255,0.07);
-      --border:rgba(255,255,255,0.10);--text:#e2e8f0;--muted:#64748b;
+      --blue:#2563eb; --blue-lt:#3b82f6; --cyan:#0ea5e9;
+      --orange:#f97316; --red:#ef4444; --purple:#8b5cf6;
+      --bg:#060d1f; --glass:rgba(255,255,255,0.07);
+      --border:rgba(255,255,255,0.10); --text:#e2e8f0; --muted:#64748b;
       --shadow:0 24px 60px rgba(0,0,0,0.6);
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    html,body{height:100%;overflow:hidden;}
-    body{
-      font-family:'Outfit',sans-serif;color:var(--text);background-color:var(--bg);
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+    body {
+      font-family:'Outfit',sans-serif;
+      color:var(--text);
+      background-color:var(--bg);
+      /* BACKGROUND PHOTO — replace background.jpg with your image */
       background-image:url('background.jpg');
-      background-size:cover;background-position:center;background-attachment:fixed;
+      background-size:cover;
+      background-position:center;
+      background-attachment:fixed;
+      min-height:100vh;
     }
-    body::before{content:'';position:fixed;inset:0;background:linear-gradient(135deg,rgba(6,13,31,0.88) 0%,rgba(6,13,31,0.76) 100%);pointer-events:none;z-index:0;}
-    body::after{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:900px;height:600px;background:radial-gradient(ellipse at center,rgba(37,99,235,0.20) 0%,transparent 70%);pointer-events:none;z-index:0;}
+    body::before {
+      content:''; position:fixed; inset:0;
+      background:linear-gradient(135deg,rgba(6,13,31,0.88) 0%,rgba(6,13,31,0.76) 100%);
+      pointer-events:none; z-index:0;
+    }
+    body::after {
+      content:''; position:fixed;
+      top:-200px; left:50%; transform:translateX(-50%);
+      width:900px; height:600px;
+      background:radial-gradient(ellipse at center,rgba(37,99,235,0.20) 0%,transparent 70%);
+      pointer-events:none; z-index:0;
+    }
 
-    .page{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;z-index:1;transition:transform 0.55s cubic-bezier(0.77,0,0.18,1),opacity 0.55s cubic-bezier(0.77,0,0.18,1);}
-    #page-landing{transform:translateX(0);opacity:1;}
-    #page-results{transform:translateX(100%);opacity:0;pointer-events:none;}
-    #page-landing.slide-out{transform:translateX(-100%);opacity:0;pointer-events:none;}
-    #page-results.slide-in{transform:translateX(0);opacity:1;pointer-events:all;}
+    /* ── VIEWPORT CONTAINER ── */
+    /* Each page fills the screen and slides horizontally.
+       The inner scroll-area handles vertical scrolling. */
+    #app {
+      position:relative;
+      width:100vw;
+      height:100vh;
+      overflow:hidden; /* clips the horizontal slide */
+    }
 
-    /* LANDING */
-    #page-landing{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:50px 20px 60px;gap:36px;}
-    .profile{text-align:center;animation:fadeDown 0.7s ease both;}
-    .avatar{width:104px;height:104px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:2.8rem;color:#fff;margin:0 auto 20px;box-shadow:0 0 0 5px rgba(59,130,246,0.22),0 18px 44px rgba(0,0,0,0.55);}
-    .profile-name{font-size:2.1rem;font-weight:900;letter-spacing:-0.6px;color:#f8fafc;margin-bottom:6px;}
-    .profile-title{font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:2.2px;color:var(--muted);text-transform:uppercase;margin-bottom:26px;}
-    .contact-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
-    .contact-chip{display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:50px;border:1px solid var(--border);background:var(--glass);backdrop-filter:blur(12px);color:var(--text);font-size:0.85rem;font-weight:500;text-decoration:none;transition:all 0.2s;}
-    .contact-chip:hover{border-color:var(--blue-lt);background:rgba(37,99,235,0.15);color:#fff;transform:translateY(-2px);}
-    .contact-chip i{color:var(--blue-lt);font-size:0.9rem;}
+    .page {
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      height:100%;
+      overflow-y:auto;
+      overflow-x:hidden;
+      -webkit-overflow-scrolling:touch;
+      z-index:1;
+      transition:transform 0.55s cubic-bezier(0.77,0,0.18,1),
+                 opacity   0.55s cubic-bezier(0.77,0,0.18,1);
+      will-change:transform;
+    }
 
-    .nav-card{width:100%;max-width:420px;background:var(--glass);border:1px solid var(--border);border-radius:24px;backdrop-filter:blur(20px);box-shadow:var(--shadow);overflow:hidden;animation:fadeDown 0.7s 0.15s ease both;}
-    .nav-header{padding:20px 26px 14px;border-bottom:1px solid var(--border);}
-    .nav-header-label{font-family:'Space Mono',monospace;font-size:0.67rem;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:8px;}
-    .nav-header-label::before{content:'';display:block;width:18px;height:2px;background:var(--blue-lt);border-radius:2px;}
-    .nav-list{padding:10px;}
-    .nav-item{border-radius:14px;overflow:hidden;margin-bottom:6px;}
-    .nav-item:last-child{margin-bottom:0;}
-    .nav-btn{width:100%;display:flex;align-items:center;gap:14px;padding:14px 15px;background:transparent;border:none;border-radius:14px;color:var(--text);font-family:'Outfit',sans-serif;font-size:0.98rem;font-weight:600;cursor:pointer;text-align:left;transition:background 0.2s,color 0.2s;}
-    .nav-btn:hover{background:rgba(255,255,255,0.06);color:#fff;}
-    .nav-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
-    .nav-icon-y1{background:rgba(16,185,129,0.15);color:#10b981;}
-    .nav-icon-y2{background:rgba(59,130,246,0.15);color:#3b82f6;}
-    .nav-text{flex:1;}
-    .nav-text small{display:block;font-family:'Space Mono',monospace;font-size:0.63rem;letter-spacing:1px;color:var(--muted);margin-top:2px;font-weight:400;}
-    .nav-arrow{font-size:0.72rem;color:var(--muted);transition:transform 0.25s,color 0.2s;}
-    .nav-btn:hover .nav-arrow{transform:translateX(3px);color:var(--blue-lt);}
-    #y2-arrow.open{transform:rotate(180deg);color:var(--blue-lt);}
-    .nav-sub{padding:0 8px 8px 8px;display:none;flex-direction:column;gap:5px;}
-    .nav-sub.open{display:flex;}
-    .nav-sub-btn{width:100%;display:flex;align-items:center;gap:12px;padding:11px 14px 11px 22px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:11px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:0.87rem;font-weight:600;cursor:pointer;text-align:left;transition:all 0.2s;}
-    .nav-sub-btn:hover{background:rgba(139,92,246,0.15);border-color:var(--purple);color:#fff;}
-    .nav-sub-btn i{font-size:0.8rem;color:var(--purple);}
+    /* Default states */
+    #page-landing { transform:translateX(0);    opacity:1; }
+    #page-results  { transform:translateX(100%); opacity:0; pointer-events:none; }
 
-    /* RESULTS PAGE */
-    #page-results{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:28px 16px 60px;}
-    .results-topbar{width:100%;max-width:500px;display:flex;align-items:center;gap:14px;margin-bottom:26px;}
-    .back-btn{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;border:1px solid var(--border);background:var(--glass);backdrop-filter:blur(12px);color:var(--muted);font-family:'Outfit',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
-    .back-btn:hover{border-color:var(--blue-lt);color:#fff;}
-    .results-title{flex:1;}
-    .results-title h2{font-size:1.1rem;font-weight:700;color:#f8fafc;line-height:1.2;}
-    .results-title span{font-family:'Space Mono',monospace;font-size:0.63rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;}
-    .results-card{width:100%;max-width:500px;background:var(--glass);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);backdrop-filter:blur(20px);overflow:hidden;}
-    .card-top{padding:26px 26px 0;}
-    .card-body-inner{padding:0 26px 26px;}
-    .section-label{font-family:'Space Mono',monospace;font-size:0.67rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-    .section-label::before{content:'';display:block;width:16px;height:2px;background:var(--blue-lt);border-radius:2px;flex-shrink:0;}
-    .section-label i{color:var(--blue-lt);font-size:0.7rem;}
-    .input-wrap{position:relative;margin-bottom:13px;}
-    .input-wrap>i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);}
-    .seat-input{width:100%;padding:15px 16px 15px 42px;background:rgba(255,255,255,0.05);border:1.5px solid var(--border);border-radius:13px;color:#f8fafc;font-family:'Space Mono',monospace;font-size:1.05rem;letter-spacing:2px;outline:none;transition:border-color 0.2s,background 0.2s;}
-    .seat-input::placeholder{color:var(--muted);letter-spacing:1px;}
-    .seat-input:focus{border-color:var(--blue-lt);background:rgba(37,99,235,0.08);}
-    .btn-search{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(90deg,var(--blue),var(--cyan));color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.25s;}
-    .btn-search:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(37,99,235,0.4);}
-    .btn-search:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
-    .loader{display:none;width:34px;height:34px;border:3px solid rgba(255,255,255,0.08);border-top-color:var(--blue-lt);border-radius:50%;animation:spin 0.8s linear infinite;margin:20px auto 0;}
-    .error-msg{display:none;margin-top:16px;padding:12px 16px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:11px;color:#fca5a5;font-size:0.87rem;text-align:center;}
-    .result-area{display:none;margin-top:20px;animation:slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;}
-    .divider{height:1px;background:var(--border);margin:16px 0;}
-    .grade-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
-    .grade-circle{width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.92rem;font-weight:800;color:#fff;margin-bottom:10px;text-align:center;line-height:1.25;padding:8px;}
-    .grade-label{font-weight:700;font-size:1.05rem;color:#f8fafc;}
-    .bg-Excellent{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 10px 28px rgba(16,185,129,0.4);}
-    .bg-VeryGood{background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:0 10px 28px rgba(59,130,246,0.4);}
-    .bg-Good{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 10px 28px rgba(245,158,11,0.4);}
-    .bg-Poor{background:linear-gradient(135deg,#f97316,#ea580c);box-shadow:0 10px 28px rgba(249,115,22,0.4);}
-    .bg-Fail{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 10px 28px rgba(239,68,68,0.4);}
-    .bg-Default{background:linear-gradient(135deg,#475569,#334155);}
-    .student-info{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:13px;padding:14px 18px;margin-bottom:12px;}
-    .student-name{font-size:1.08rem;font-weight:700;color:#f8fafc;margin-bottom:4px;}
-    .student-seat{font-family:'Space Mono',monospace;font-size:0.77rem;color:var(--muted);}
-    .stats-grid{display:flex;flex-direction:column;gap:7px;}
-    .stat-row{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:11px;}
-    .stat-label{color:var(--muted);font-size:0.87rem;display:flex;align-items:center;gap:7px;}
-    .stat-label i{font-size:0.77rem;}
-    .stat-val{font-weight:700;font-size:0.93rem;color:#f8fafc;font-family:'Space Mono',monospace;}
-    .site-footer{margin-top:28px;color:var(--muted);font-size:0.73rem;font-family:'Space Mono',monospace;letter-spacing:0.5px;text-align:center;}
+    /* Transitioned states */
+    #page-landing.hidden  { transform:translateX(-100%); opacity:0; pointer-events:none; }
+    #page-results.visible { transform:translateX(0);     opacity:1; pointer-events:all; }
 
-    @keyframes fadeDown{from{opacity:0;transform:translateY(-22px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    @keyframes shake{0%,100%{transform:translateX(0)}25%,75%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+    /* ── PAGE INNER SCROLL CONTAINERS ── */
+    .page-inner {
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:60px 20px 80px;
+      gap:32px;
+      position:relative;
+      z-index:1;
+    }
 
-    @media(max-width:480px){
-      .profile-name{font-size:1.7rem;}
-      .card-top,.card-body-inner{padding-left:18px;padding-right:18px;}
-      #page-landing{justify-content:flex-start;padding-top:60px;}
+    /* ── PROFILE ── */
+    .profile { text-align:center; animation:fadeDown 0.7s ease both; }
+    .avatar {
+      width:104px; height:104px; border-radius:50%;
+      background:linear-gradient(135deg,var(--blue),var(--cyan));
+      display:flex; align-items:center; justify-content:center;
+      font-size:2.8rem; color:#fff;
+      margin:0 auto 20px;
+      box-shadow:0 0 0 5px rgba(59,130,246,0.22), 0 18px 44px rgba(0,0,0,0.55);
+    }
+    .profile-name { font-size:2.1rem; font-weight:900; letter-spacing:-0.6px; color:#f8fafc; margin-bottom:6px; }
+    .profile-title {
+      font-family:'Space Mono',monospace; font-size:0.72rem;
+      letter-spacing:2.2px; color:var(--muted); text-transform:uppercase; margin-bottom:26px;
+    }
+    .contact-row { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+    .contact-chip {
+      display:flex; align-items:center; gap:8px;
+      padding:9px 20px; border-radius:50px;
+      border:1px solid var(--border); background:var(--glass);
+      backdrop-filter:blur(12px); color:var(--text);
+      font-size:0.87rem; font-weight:500; text-decoration:none;
+      transition:all 0.2s;
+    }
+    .contact-chip:hover {
+      border-color:var(--blue-lt);
+      background:rgba(37,99,235,0.15);
+      color:#fff; transform:translateY(-2px);
+    }
+    .contact-chip i { color:var(--blue-lt); font-size:0.92rem; }
+
+    /* ── NAV CARD ── */
+    .nav-card {
+      width:100%; max-width:420px;
+      background:var(--glass); border:1px solid var(--border);
+      border-radius:24px; backdrop-filter:blur(20px);
+      box-shadow:var(--shadow);
+      animation:fadeDown 0.7s 0.15s ease both;
+      overflow:visible; /* allow dropdown to grow */
+    }
+    .nav-header {
+      padding:20px 24px 14px;
+      border-bottom:1px solid var(--border);
+    }
+    .nav-header-label {
+      font-family:'Space Mono',monospace; font-size:0.67rem;
+      letter-spacing:2.5px; color:var(--muted); text-transform:uppercase;
+      display:flex; align-items:center; gap:8px;
+    }
+    .nav-header-label::before {
+      content:''; display:block; width:18px; height:2px;
+      background:var(--blue-lt); border-radius:2px;
+    }
+
+    .nav-list { padding:10px; display:flex; flex-direction:column; gap:4px; }
+
+    /* Top-level nav button */
+    .nav-btn {
+      width:100%; display:flex; align-items:center; gap:14px;
+      padding:13px 14px;
+      background:transparent; border:none; border-radius:13px;
+      color:var(--text); font-family:'Outfit',sans-serif;
+      font-size:0.97rem; font-weight:600;
+      cursor:pointer; text-align:left;
+      transition:background 0.2s, color 0.2s;
+    }
+    .nav-btn:hover { background:rgba(255,255,255,0.06); color:#fff; }
+
+    .nav-icon {
+      width:40px; height:40px; border-radius:11px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1rem; flex-shrink:0;
+    }
+    .icon-green  { background:rgba(16,185,129,0.15); color:#10b981; }
+    .icon-blue   { background:rgba(59,130,246,0.15);  color:#3b82f6; }
+    .icon-purple { background:rgba(139,92,246,0.15);  color:#8b5cf6; }
+
+    .nav-text { flex:1; text-align:left; }
+    .nav-text small {
+      display:block; font-family:'Space Mono',monospace;
+      font-size:0.62rem; letter-spacing:1px;
+      color:var(--muted); margin-top:2px; font-weight:400;
+    }
+    .nav-arrow { font-size:0.72rem; color:var(--muted); transition:transform 0.25s, color 0.2s; }
+    .nav-btn:hover .nav-arrow { color:var(--blue-lt); }
+    .nav-btn:hover .arrow-right { transform:translateX(3px); }
+    .arrow-down.open { transform:rotate(180deg); color:var(--blue-lt); }
+
+    /* Expandable sub-list */
+    .nav-sub {
+      display:none; flex-direction:column; gap:4px;
+      padding:0 8px 6px 8px;
+    }
+    .nav-sub.open { display:flex; }
+
+    .nav-sub-btn {
+      width:100%; display:flex; align-items:center; gap:12px;
+      padding:11px 14px 11px 20px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--border); border-radius:11px;
+      color:var(--muted); font-family:'Outfit',sans-serif;
+      font-size:0.87rem; font-weight:600;
+      cursor:pointer; text-align:left; transition:all 0.2s;
+    }
+    .nav-sub-btn:hover {
+      background:rgba(139,92,246,0.15);
+      border-color:var(--purple); color:#fff;
+    }
+    .nav-sub-btn i { font-size:0.8rem; color:var(--purple); }
+
+    /* ── RESULTS PAGE ── */
+    #page-results .page-inner {
+      padding:28px 16px 80px;
+      gap:0;
+    }
+
+    .results-topbar {
+      width:100%; max-width:500px;
+      display:flex; align-items:center; gap:14px;
+      margin-bottom:24px;
+    }
+    .back-btn {
+      display:flex; align-items:center; gap:8px;
+      padding:10px 18px; border-radius:12px;
+      border:1px solid var(--border); background:var(--glass);
+      backdrop-filter:blur(12px); color:var(--muted);
+      font-family:'Outfit',sans-serif; font-size:0.9rem; font-weight:600;
+      cursor:pointer; transition:all 0.2s; flex-shrink:0;
+    }
+    .back-btn:hover { border-color:var(--blue-lt); color:#fff; }
+    .results-title { flex:1; min-width:0; }
+    .results-title h2 { font-size:1.1rem; font-weight:700; color:#f8fafc; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .results-title span { font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; }
+
+    .results-card {
+      width:100%; max-width:500px;
+      background:var(--glass); border:1px solid var(--border);
+      border-radius:24px; box-shadow:var(--shadow);
+      backdrop-filter:blur(20px); overflow:hidden;
+    }
+    .card-top { padding:24px 24px 0; }
+    .card-body-inner { padding:0 24px 24px; }
+
+    .section-label {
+      font-family:'Space Mono',monospace; font-size:0.67rem;
+      letter-spacing:2px; color:var(--muted); text-transform:uppercase;
+      margin-bottom:16px; display:flex; align-items:center; gap:8px;
+    }
+    .section-label::before {
+      content:''; display:block; width:16px; height:2px;
+      background:var(--blue-lt); border-radius:2px; flex-shrink:0;
+    }
+    .section-label i { color:var(--blue-lt); font-size:0.7rem; }
+
+    .input-wrap { position:relative; margin-bottom:13px; }
+    .input-wrap > i { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--muted); }
+    .seat-input {
+      width:100%; padding:15px 16px 15px 42px;
+      background:rgba(255,255,255,0.05);
+      border:1.5px solid var(--border); border-radius:13px;
+      color:#f8fafc; font-family:'Space Mono',monospace;
+      font-size:1.05rem; letter-spacing:2px; outline:none;
+      transition:border-color 0.2s, background 0.2s;
+    }
+    .seat-input::placeholder { color:var(--muted); letter-spacing:1px; }
+    .seat-input:focus { border-color:var(--blue-lt); background:rgba(37,99,235,0.08); }
+
+    .btn-search {
+      width:100%; padding:15px; border-radius:13px; border:none;
+      background:linear-gradient(90deg,var(--blue),var(--cyan));
+      color:#fff; font-family:'Outfit',sans-serif;
+      font-size:1rem; font-weight:700; cursor:pointer; transition:all 0.25s;
+    }
+    .btn-search:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(37,99,235,0.4); }
+    .btn-search:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+    .loader {
+      display:none; width:34px; height:34px;
+      border:3px solid rgba(255,255,255,0.08);
+      border-top-color:var(--blue-lt); border-radius:50%;
+      animation:spin 0.8s linear infinite; margin:20px auto 0;
+    }
+    .error-msg {
+      display:none; margin-top:16px; padding:12px 16px;
+      background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3);
+      border-radius:11px; color:#fca5a5; font-size:0.87rem; text-align:center;
+    }
+    .result-area { display:none; margin-top:20px; animation:slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+    .divider { height:1px; background:var(--border); margin:16px 0; }
+
+    .grade-wrap { display:flex; flex-direction:column; align-items:center; margin-bottom:16px; }
+    .grade-circle {
+      width:90px; height:90px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.92rem; font-weight:800; color:#fff;
+      margin-bottom:10px; text-align:center; line-height:1.25; padding:8px;
+    }
+    .grade-label { font-weight:700; font-size:1.05rem; color:#f8fafc; }
+
+    .bg-Excellent { background:linear-gradient(135deg,#10b981,#059669); box-shadow:0 10px 28px rgba(16,185,129,0.4); }
+    .bg-VeryGood  { background:linear-gradient(135deg,#3b82f6,#2563eb); box-shadow:0 10px 28px rgba(59,130,246,0.4); }
+    .bg-Good      { background:linear-gradient(135deg,#f59e0b,#d97706); box-shadow:0 10px 28px rgba(245,158,11,0.4); }
+    .bg-Poor      { background:linear-gradient(135deg,#f97316,#ea580c); box-shadow:0 10px 28px rgba(249,115,22,0.4); }
+    .bg-Fail      { background:linear-gradient(135deg,#ef4444,#dc2626); box-shadow:0 10px 28px rgba(239,68,68,0.4); }
+    .bg-Default   { background:linear-gradient(135deg,#475569,#334155); }
+
+    .student-info {
+      background:rgba(255,255,255,0.04); border:1px solid var(--border);
+      border-radius:13px; padding:14px 18px; margin-bottom:12px;
+    }
+    .student-name { font-size:1.08rem; font-weight:700; color:#f8fafc; margin-bottom:4px; }
+    .student-seat { font-family:'Space Mono',monospace; font-size:0.77rem; color:var(--muted); }
+
+    .stats-grid { display:flex; flex-direction:column; gap:7px; }
+    .stat-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 15px; background:rgba(255,255,255,0.04);
+      border:1px solid var(--border); border-radius:11px;
+    }
+    .stat-label { color:var(--muted); font-size:0.87rem; display:flex; align-items:center; gap:7px; }
+    .stat-label i { font-size:0.77rem; }
+    .stat-val { font-weight:700; font-size:0.93rem; color:#f8fafc; font-family:'Space Mono',monospace; }
+
+    .site-footer {
+      color:var(--muted); font-size:0.73rem;
+      font-family:'Space Mono',monospace; letter-spacing:0.5px;
+      text-align:center; position:relative; z-index:1;
+      margin-top:auto; padding-top:30px;
+    }
+
+    @keyframes fadeDown { from{opacity:0;transform:translateY(-22px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideUp  { from{opacity:0;transform:translateY(22px)}  to{opacity:1;transform:translateY(0)} }
+    @keyframes spin     { to{transform:rotate(360deg)} }
+    @keyframes shake    { 0%,100%{transform:translateX(0)} 25%,75%{transform:translateX(-6px)} 50%{transform:translateX(6px)} }
+
+    @media(max-width:480px) {
+      .profile-name { font-size:1.75rem; }
+      .card-top, .card-body-inner { padding-left:18px; padding-right:18px; }
     }
   </style>
 </head>
 <body>
 
-<!-- PAGE 1 — LANDING -->
-<div id="page-landing" class="page">
+<div id="app">
 
-  <div class="profile">
-    <div class="avatar"><i class="fas fa-user-graduate"></i></div>
-    <div class="profile-name">Omar Aboolo</div>
-    <div class="profile-title">Faculty of Medicine &nbsp;&middot;&nbsp; AFM &nbsp;&middot;&nbsp; Class of 2030</div>
-    <div class="contact-row">
-      <a class="contact-chip" href="https://t.me/OmarAboolo" target="_blank">
-        <i class="fab fa-telegram"></i> Telegram
-      </a>
-      <a class="contact-chip" href="mailto:Omaraboolo924copy@gmail.com">
-        <i class="fas fa-envelope"></i> Email
-      </a>
+  <!-- ═══════════════════════════
+       PAGE 1 — LANDING
+  ═══════════════════════════ -->
+  <div id="page-landing" class="page">
+    <div class="page-inner">
+
+      <!-- Profile -->
+      <div class="profile">
+        <div class="avatar"><i class="fas fa-user-graduate"></i></div>
+        <div class="profile-name">Omar Aboolo</div>
+        <div class="profile-title">Faculty of Medicine &middot; AFM &middot; Class of 2030</div>
+        <div class="contact-row">
+          <a class="contact-chip" href="https://t.me/OmarAboolo" target="_blank">
+            <i class="fab fa-telegram"></i> Telegram
+          </a>
+          <a class="contact-chip" href="mailto:Omaraboolo924copy@gmail.com">
+            <i class="fas fa-envelope"></i> Email
+          </a>
+        </div>
+      </div>
+
+      <!-- Navigation menu -->
+      <div class="nav-card">
+        <div class="nav-header">
+          <div class="nav-header-label">
+            <i class="fas fa-bars" style="color:var(--blue-lt);font-size:0.7rem;"></i>&nbsp; Select Results
+          </div>
+        </div>
+
+        <div class="nav-list">
+
+          <!-- 1st Year -->
+          <div>
+            <button class="nav-btn" onclick="goToResults('y1')">
+              <span class="nav-icon icon-green"><i class="fas fa-seedling"></i></span>
+              <span class="nav-text">
+                1st Year
+                <small>CLASS OF 2030 &middot; RANK</small>
+              </span>
+              <i class="fas fa-chevron-right nav-arrow arrow-right"></i>
+            </button>
+          </div>
+
+          <!-- 2nd Year — expandable -->
+          <div>
+            <button class="nav-btn" onclick="toggleSub('y2-sub','y2-arrow')">
+              <span class="nav-icon icon-blue"><i class="fas fa-book-open"></i></span>
+              <span class="nav-text">
+                2nd Year
+                <small>CLASS OF 2029 &middot; TWO MODES</small>
+              </span>
+              <i class="fas fa-chevron-down nav-arrow arrow-down" id="y2-arrow"></i>
+            </button>
+            <div class="nav-sub" id="y2-sub">
+              <button class="nav-sub-btn" onclick="goToResults('accum')">
+                <i class="fas fa-layer-group"></i> Accumulative Grade
+              </button>
+              <button class="nav-sub-btn" onclick="goToResults('y2nd')">
+                <i class="fas fa-calendar-check"></i> 2nd Year Grade
+              </button>
+            </div>
+          </div>
+
+          <!--
+            TO ADD A NEW SECTION, copy the block below and customize:
+
+            <div>
+              <button class="nav-btn" onclick="goToResults('KEY')">
+                <span class="nav-icon icon-purple"><i class="fas fa-ICON"></i></span>
+                <span class="nav-text">
+                  Title
+                  <small>SUBTITLE</small>
+                </span>
+                <i class="fas fa-chevron-right nav-arrow arrow-right"></i>
+              </button>
+            </div>
+
+            Then add the KEY to MODE_META in the script below.
+          -->
+
+        </div>
+      </div>
+
+      <footer class="site-footer">&copy; Made by Omar Aboolo &middot; Class of 2030</footer>
     </div>
   </div>
 
-  <div class="nav-card">
-    <div class="nav-header">
-      <div class="nav-header-label">
-        <i class="fas fa-bars" style="color:var(--blue-lt);font-size:0.7rem;"></i>&nbsp; Select Results
-      </div>
-    </div>
-    <div class="nav-list">
 
-      <div class="nav-item">
-        <button class="nav-btn" onclick="goToResults('y1')">
-          <span class="nav-icon nav-icon-y1"><i class="fas fa-seedling"></i></span>
-          <span class="nav-text">
-            1st Year
-            <small>CLASS OF 2030 &nbsp;&middot;&nbsp; RANK</small>
-          </span>
-          <i class="fas fa-chevron-right nav-arrow"></i>
+  <!-- ═══════════════════════════
+       PAGE 2 — RESULTS
+  ═══════════════════════════ -->
+  <div id="page-results" class="page">
+    <div class="page-inner">
+
+      <div class="results-topbar">
+        <button class="back-btn" onclick="goBack()">
+          <i class="fas fa-arrow-left"></i> Back
         </button>
+        <div class="results-title">
+          <h2 id="results-heading">Results</h2>
+          <span id="results-subheading">&mdash;</span>
+        </div>
       </div>
 
-      <div class="nav-item">
-        <button class="nav-btn" onclick="toggleY2()">
-          <span class="nav-icon nav-icon-y2"><i class="fas fa-book-open"></i></span>
-          <span class="nav-text">
-            2nd Year
-            <small>CLASS OF 2029 &nbsp;&middot;&nbsp; TWO MODES</small>
-          </span>
-          <i class="fas fa-chevron-down nav-arrow" id="y2-arrow"></i>
-        </button>
-        <div class="nav-sub" id="y2-sub">
-          <button class="nav-sub-btn" onclick="goToResults('accum')">
-            <i class="fas fa-layer-group"></i> Accumulative Grade
+      <div class="results-card">
+        <div class="card-top">
+          <div class="section-label">
+            <i id="results-icon" class="fas fa-seedling"></i>
+            <span id="results-label-text">&mdash;</span>
+          </div>
+          <div class="input-wrap">
+            <i class="fas fa-hashtag"></i>
+            <input class="seat-input" id="seat-input" type="text" placeholder="Enter Seat Number" />
+          </div>
+        </div>
+        <div class="card-body-inner">
+          <button class="btn-search" id="search-btn" onclick="doSearch()">
+            <i class="fas fa-search" style="margin-right:8px;"></i>Search Results
           </button>
-          <button class="nav-sub-btn" onclick="goToResults('y2nd')">
-            <i class="fas fa-calendar-check"></i> 2nd Year Grade
-          </button>
+          <div class="loader" id="loader"></div>
+          <div class="error-msg" id="error-msg">
+            <i class="fas fa-triangle-exclamation" style="margin-right:6px;"></i>
+            Seat number not found. Please try again.
+          </div>
+          <div class="result-area" id="result-area">
+            <div class="divider"></div>
+            <div class="grade-wrap">
+              <div class="grade-circle bg-Default" id="grade-circle">&mdash;</div>
+              <div class="grade-label" id="grade-label">&mdash;</div>
+            </div>
+            <div class="student-info">
+              <div class="student-name" id="res-name">&mdash;</div>
+              <div class="student-seat">
+                <i class="fas fa-fingerprint" style="margin-right:6px;"></i>
+                <span id="res-seat">&mdash;</span>
+              </div>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-row">
+                <span class="stat-label"><i class="fas fa-trophy"></i> Class Rank</span>
+                <span class="stat-val" id="res-rank">#&mdash;</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label"><i class="fas fa-sigma"></i> Total Score</span>
+                <span class="stat-val" id="res-total">&mdash;</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label"><i class="fas fa-percent"></i> Percentage</span>
+                <span class="stat-val" id="res-percent">&mdash;</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
+      <footer class="site-footer">&copy; Made by Omar Aboolo &middot; Class of 2030</footer>
     </div>
   </div>
 
-  <footer class="site-footer">&copy; Made by Omar Aboolo &nbsp;&middot;&nbsp; Class of 2030</footer>
-</div>
-
-
-<!-- PAGE 2 — RESULTS -->
-<div id="page-results" class="page">
-
-  <div class="results-topbar">
-    <button class="back-btn" onclick="goBack()">
-      <i class="fas fa-arrow-left"></i> Back
-    </button>
-    <div class="results-title">
-      <h2 id="results-heading">Results</h2>
-      <span id="results-subheading">—</span>
-    </div>
-  </div>
-
-  <div class="results-card">
-    <div class="card-top">
-      <div class="section-label">
-        <i id="results-icon" class="fas fa-seedling"></i>
-        <span id="results-label-text">—</span>
-      </div>
-      <div class="input-wrap">
-        <i class="fas fa-hashtag"></i>
-        <input class="seat-input" id="seat-input" type="text" placeholder="Enter Seat Number" />
-      </div>
-    </div>
-    <div class="card-body-inner">
-      <button class="btn-search" id="search-btn" onclick="doSearch()">
-        <i class="fas fa-search" style="margin-right:8px;"></i>Search Results
-      </button>
-      <div class="loader" id="loader"></div>
-      <div class="error-msg" id="error-msg">
-        <i class="fas fa-triangle-exclamation" style="margin-right:6px;"></i>
-        Seat number not found. Please try again.
-      </div>
-      <div class="result-area" id="result-area">
-        <div class="divider"></div>
-        <div class="grade-wrap">
-          <div class="grade-circle bg-Default" id="grade-circle">—</div>
-          <div class="grade-label" id="grade-label">—</div>
-        </div>
-        <div class="student-info">
-          <div class="student-name" id="res-name">—</div>
-          <div class="student-seat">
-            <i class="fas fa-fingerprint" style="margin-right:6px;"></i>
-            <span id="res-seat">—</span>
-          </div>
-        </div>
-        <div class="stats-grid">
-          <div class="stat-row">
-            <span class="stat-label"><i class="fas fa-trophy"></i> Class Rank</span>
-            <span class="stat-val" id="res-rank">#—</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label"><i class="fas fa-sigma"></i> Total Score</span>
-            <span class="stat-val" id="res-total">—</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label"><i class="fas fa-percent"></i> Percentage</span>
-            <span class="stat-val" id="res-percent">—</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <footer class="site-footer" style="margin-top:22px;">&copy; Made by Omar Aboolo &nbsp;&middot;&nbsp; Class of 2030</footer>
-</div>
+</div><!-- /app -->
 
 
 <script>
+  /* ════════════════════════════════════
+     API URLS
+  ════════════════════════════════════ */
   const APIS = {
     y1:    "https://script.google.com/macros/s/AKfycbxxnn4t8uCrpPy6zgHQ693krg_O1s0CuPcX0dI5o2gyng1jUJm3ehLJ9xgUBxPMgFEv/exec",
     accum: "https://script.google.com/macros/s/AKfycbwnVd2j78AuWfQnMrSw3FFU9VPJU-czByF25mP5OnVZ-BFKQW2KEIZm5uXmuZheTijC/exec",
     y2nd:  "https://script.google.com/macros/s/AKfycbzJ1Mr6oJ7ZczAjb0mIkoZHIa4F1r1XL5Pgb2ncNwRPYs5UnoEH8KkR2jCsFXKWwIo8/exec",
+    /* ADD NEW APIS HERE:
+    key: "https://script.google.com/..." */
   };
 
+  /* ════════════════════════════════════
+     PAGE METADATA
+     To add a new page: add a new key here
+     matching the key in APIS above.
+  ════════════════════════════════════ */
   const MODE_META = {
     y1:    { heading:"1st Year Results",     sub:"CLASS OF 2030 · RANK",          label:"1st Year · Class of 2030",      icon:"fa-seedling"       },
     accum: { heading:"Accumulative Results", sub:"2ND YEAR · CLASS OF 2029",      label:"2nd Year · Accumulative Grade", icon:"fa-layer-group"    },
@@ -267,40 +515,56 @@
   };
 
   let currentMode = null;
-  let y2Open = false;
 
-  function toggleY2() {
-    y2Open = !y2Open;
-    document.getElementById('y2-sub').classList.toggle('open', y2Open);
-    document.getElementById('y2-arrow').classList.toggle('open', y2Open);
+  /* ── Toggle expandable sub-list ── */
+  function toggleSub(subId, arrowId) {
+    const sub   = document.getElementById(subId);
+    const arrow = document.getElementById(arrowId);
+    const isOpen = sub.classList.toggle('open');
+    arrow.classList.toggle('open', isOpen);
   }
 
+  /* ── Navigate to results page ── */
   function goToResults(mode) {
     currentMode = mode;
     const m = MODE_META[mode];
+
     document.getElementById('results-heading').innerText    = m.heading;
     document.getElementById('results-subheading').innerText = m.sub;
     document.getElementById('results-label-text').innerText = m.label;
     document.getElementById('results-icon').className       = 'fas ' + m.icon;
+
     resetResult();
     document.getElementById('seat-input').value = '';
-    document.getElementById('page-landing').classList.add('slide-out');
-    document.getElementById('page-results').classList.add('slide-in');
+
+    // Scroll results page back to top before showing
+    document.getElementById('page-results').scrollTop = 0;
+
+    document.getElementById('page-landing').classList.add('hidden');
+    document.getElementById('page-results').classList.add('visible');
+
     setTimeout(() => document.getElementById('seat-input').focus(), 600);
   }
 
+  /* ── Back to landing ── */
   function goBack() {
-    document.getElementById('page-landing').classList.remove('slide-out');
-    document.getElementById('page-results').classList.remove('slide-in');
+    document.getElementById('page-landing').classList.remove('hidden');
+    document.getElementById('page-results').classList.remove('visible');
+    // Scroll landing back to top
+    document.getElementById('page-landing').scrollTop = 0;
   }
 
+  /* ── Reset result UI ── */
   function resetResult() {
     document.getElementById('result-area').style.display = 'none';
     document.getElementById('error-msg').style.display   = 'none';
   }
 
+  /* ── Grade calc from percentage (IFS formula) ──
+     >=85 Excellent | >=75 Very Good | >=65 Good | >=60 Poor | else Fail */
   function calcGrade(percentStr) {
-    if (!percentStr || percentStr === '—' || percentStr === '-') return { label:'N/A', cls:'bg-Default' };
+    if (!percentStr || percentStr === '—' || percentStr === '-')
+      return { label:'N/A', cls:'bg-Default' };
     const pct = parseFloat(percentStr.toString().replace('%','').trim());
     if (isNaN(pct)) return { label:'N/A', cls:'bg-Default' };
     if (pct >= 85) return { label:'Excellent', cls:'bg-Excellent' };
@@ -310,22 +574,30 @@
     return            { label:'Fail',       cls:'bg-Fail'      };
   }
 
+  /* ── Search ── */
   function doSearch() {
     const seat = (document.getElementById('seat-input').value || '').trim();
     if (!seat) { document.getElementById('seat-input').focus(); return; }
+
     const url = APIS[currentMode];
-    if (!url || url.includes('YOUR_')) { alert('Please add the API URL for this section.'); return; }
+    if (!url || url.includes('YOUR_')) {
+      alert('Please add the API URL for this section.');
+      return;
+    }
+
     const btn = document.getElementById('search-btn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="margin-right:8px;"></i>Searching...';
     document.getElementById('loader').style.display = 'block';
     resetResult();
+
     fetch(url + '?seat=' + encodeURIComponent(seat))
       .then(r => r.json())
       .then(data => {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-search" style="margin-right:8px;"></i>Search Results';
         document.getElementById('loader').style.display = 'none';
+
         if (data.found) {
           populateResult(data);
         } else {
@@ -344,22 +616,27 @@
       });
   }
 
+  /* ── Populate result ── */
   function populateResult(data) {
     const isFail = data.total === 'Fail' || data.percent === '-' ||
                    (data.evaluation && (data.evaluation.includes('راسب') || data.evaluation === 'Fail'));
     const grade = isFail ? { label:'Fail', cls:'bg-Fail' } : calcGrade(data.percent);
+
     document.getElementById('res-name').innerText    = data.name    || '—';
     document.getElementById('res-seat').innerText    = 'Seat: ' + (data.seat || '—');
     document.getElementById('res-rank').innerText    = '#' + (data.rank || '—');
     document.getElementById('res-total').innerText   = data.total   || '—';
     document.getElementById('res-percent').innerText = data.percent || '—';
     document.getElementById('grade-label').innerText = grade.label;
+
     const circle = document.getElementById('grade-circle');
     circle.className = 'grade-circle ' + grade.cls;
     circle.innerText = grade.label;
+
     document.getElementById('result-area').style.display = 'block';
   }
 
+  /* ── Enter key ── */
   document.getElementById('seat-input').addEventListener('keypress', e => {
     if (e.key === 'Enter') doSearch();
   });
